@@ -19,7 +19,7 @@ app.use(express.json());
 // BASIC TEST ROUTE
 // ===============================
 app.get("/", (req, res) => {
-  res.send("AI KASA backend is running ✅");
+  res.send("AI KASA backend is running");
 });
 
 // ===============================
@@ -33,7 +33,9 @@ const openai = new OpenAI({
 // AI ENDPOINT (OPENAI ONLY)
 // ===============================
 app.post("/ask", async (req, res) => {
-  console.log("📩 Incoming request:", req.body);
+  console.log("Incoming request:", req.body);
+
+  const { message = "", age = 6, subject = "general" } = req.body;
 
   // ===============================
   // SYSTEM PROMPT (AGE-AWARE + MATH RULES)
@@ -64,18 +66,18 @@ Global Knowledge.
 
 AGE-BASED TEACHING RULES:
 
-🔢 MATHEMATICS:
-- If learner age is UNDER 9:
-  • Use guided step-by-step solving
-  • Explain ONE step at a time
-  • Encourage the learner to think
-  • Do NOT immediately give the final answer
-- If learner age is 9 or ABOVE:
-  • Show the full equation
-  • Explain each step clearly
-  • Provide the final answer
+MATHEMATICS:
+- If learner age is under 9:
+  * Use guided step-by-step solving
+  * Explain one step at a time
+  * Encourage thinking
+  * Do not immediately give the final answer
+- If learner age is 9 or above:
+  * Show the full equation
+  * Explain each step clearly
+  * Provide the final answer
 
-📘 OTHER SUBJECTS:
+OTHER SUBJECTS:
 - Ages under 12: simple language and examples
 - Ages 13–18: structured, step-by-step explanations
 - Ages 19–24: practical, real-world explanations
@@ -106,21 +108,21 @@ ${message}
       temperature: 0.3
     });
 
-    const reply =
-      completion.choices[0].message.content.slice(0, 400);
-
+    const reply = completion.choices[0].message.content.slice(0, 400);
     res.json({ reply });
   } catch (error) {
     console.error("OpenAI error:", error.message);
     res.json({
-      reply: "Please try again 😊"
+      reply: "Please try again."
     });
   }
 });
 
 // ===============================
-// START SERVER
+// START SERVER (RENDER SAFE)
 // ===============================
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log("AI KASA backend running on $(PORT');
+  console.log(`AI KASA backend running on port ${PORT}`);
 });
