@@ -16,10 +16,15 @@ app.use(cors());
 app.use(express.json());
 
 // ===============================
-// BASIC TEST ROUTE
+// BASIC ROUTES
 // ===============================
 app.get("/", (req, res) => {
-  res.send("AI KASA backend is running");
+  res.status(200).send("AI KASA backend is running");
+});
+
+// 🔴 VERY IMPORTANT FOR RENDER
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
 });
 
 // ===============================
@@ -30,7 +35,7 @@ const openai = new OpenAI({
 });
 
 // ===============================
-// AI ENDPOINT (OPENAI ONLY)
+// AI ENDPOINT
 // ===============================
 app.post("/ask", async (req, res) => {
   console.log("Incoming request:", req.body);
@@ -38,7 +43,7 @@ app.post("/ask", async (req, res) => {
   const { message = "", age = 6, subject = "general" } = req.body;
 
   // ===============================
-  // SYSTEM PROMPT (AGE-AWARE + MATH RULES)
+  // SYSTEM PROMPT
   // ===============================
   const systemPrompt = `
 You are AI KASA, a safe and intelligent educational assistant.
@@ -108,12 +113,17 @@ ${message}
       temperature: 0.3
     });
 
-    const reply = completion.choices[0].message.content.slice(0, 400);
-    res.json({ reply });
+    const reply =
+      completion.choices[0]?.message?.content?.slice(0, 400) ||
+      "I am still learning. Please try again.";
+
+    res.status(200).json({ reply });
+
   } catch (error) {
     console.error("OpenAI error:", error.message);
-    res.json({
-      reply: "Please try again."
+
+    res.status(500).json({
+      reply: "I am having trouble responding right now. Please try again."
     });
   }
 });
