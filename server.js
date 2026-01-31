@@ -1,35 +1,3 @@
-/* =====================================
-   PHONICS MAP (FRONTEND SOUND ENGINE)
-===================================== */
-const phonicsMap = {
-  a: "a",
-  b: "b",
-  c: "c",
-  d: "d",
-  e: "e",
-  f: "f",
-  g: "g",
-  h: "h",
-  i: "i",
-  j: "j",
-  k: "k",
-  l: "l",
-  m: "m",
-  n: "n",
-  o: "o",
-  p: "p",
-  q: "k",
-  r: "r",
-  s: "s",
-  t: "t",
-  u: "uh",
-  v: "v",
-  w: "w",
-  x: "x",
-  y: "y",
-  z: "z"
-};
-
 // ===============================
 // IMPORTS (MUST BE AT TOP)
 // ===============================
@@ -48,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // ===============================
-// BASIC TEST ROUTE (VERY IMPORTANT)
+// BASIC TEST ROUTE
 // ===============================
 app.get("/", (req, res) => {
   res.send("AI KASA backend is running ✅");
@@ -62,37 +30,71 @@ const openai = new OpenAI({
 });
 
 // ===============================
-// SUBJECT DETECTION
-// ===============================
-function detectSubject(text = "") {
-  if (/\d+/.test(text)) return "math";
-  if (text.includes("spell") || text.includes("read")) return "english";
-  if (text.includes("plant") || text.includes("animal")) return "science";
-  return "general";
-}
-
-// ===============================
-// AI ENDPOINT
+// AI ENDPOINT (OPENAI ONLY)
 // ===============================
 app.post("/ask", async (req, res) => {
-  const { message = "", age = 6 } = req.body;
+  const { message = "", age = 6, subject = "general" } = req.body;
 
+  // ===============================
+  // SYSTEM PROMPT (AGE-AWARE + MATH RULES)
+  // ===============================
   const systemPrompt = `
-You are AI KASA, a child-safe AI tutor for children aged 2.5–12.
+You are AI KASA, a safe and intelligent educational assistant.
 
-STRICT RULES:
-- Use simple, friendly language
-- Short sentences
-- Encourage effort
-- NEVER give full homework answers
-- NEVER ask personal questions
-- NEVER discuss adult or violent topics
-- Teach step by step
-- Use phonics for spelling
-- Always end with encouragement
+Audience:
+Ages 2.5 to 24.
+
+GENERAL BEHAVIOR RULES:
+- Be encouraging and respectful
+- Never shame or judge
+- Never ask for personal data
+- Never provide unsafe, adult, or violent content
+- Always end responses with encouragement
+
+SUBJECTS SUPPORTED:
+English Language,
+Mathematics,
+Science,
+Social Studies,
+Geography,
+Robotics,
+Marketing,
+Accounting,
+Global Knowledge.
+
+AGE-BASED TEACHING RULES:
+
+🔢 MATHEMATICS:
+- If learner age is UNDER 9:
+  • Use guided step-by-step solving
+  • Explain ONE step at a time
+  • Encourage the learner to think
+  • Do NOT immediately give the final answer
+- If learner age is 9 or ABOVE:
+  • Show the full equation
+  • Explain each step clearly
+  • Provide the final answer
+
+📘 OTHER SUBJECTS:
+- Ages under 12: simple language and examples
+- Ages 13–18: structured, step-by-step explanations
+- Ages 19–24: practical, real-world explanations
+
+IMPORTANT:
+- Guide learning, do not dump answers for young children
+- Keep explanations clear and age-appropriate
 `;
 
-  const userPrompt = `Child age: ${age}. Child says: "${message}"`;
+  // ===============================
+  // USER PROMPT
+  // ===============================
+  const userPrompt = `
+Learner Age: ${age}
+Subject: ${subject}
+
+Question or Assignment:
+${message}
+`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -101,17 +103,17 @@ STRICT RULES:
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      temperature: 0.4
+      temperature: 0.3
     });
 
-    let reply = completion.choices[0].message.content || "";
-    reply = reply.slice(0, 300);
+    const reply =
+      completion.choices[0].message.content.slice(0, 400);
 
     res.json({ reply });
   } catch (error) {
-    console.error("AI error:", error.message);
+    console.error("OpenAI error:", error.message);
     res.json({
-      reply: "Let’s try again together 😊"
+      reply: "Please try again 😊"
     });
   }
 });
