@@ -33,7 +33,7 @@ const openai = new OpenAI({
 // AI ENDPOINT (OPENAI ONLY)
 // ===============================
 app.post("/ask", async (req, res) => {
-  const { message = "", age = 6, subject = "general" } = req.body;
+  console.log("📩 Incoming request:", req.body);
 
   // ===============================
   // SYSTEM PROMPT (AGE-AWARE + MATH RULES)
@@ -124,4 +124,3 @@ ${message}
 app.listen(PORT, () => {
   console.log("AI KASA backend running on $(PORT');
 });
-
