@@ -121,6 +121,7 @@ ${message}
 // ===============================
 // START SERVER
 // ===============================
-app.listen(3000, () => {
-  console.log("AI KASA backend running on http://localhost:3000");
+app.listen(PORT, () => {
+  console.log("AI KASA backend running on $(PORT');
 });
+
